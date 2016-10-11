@@ -10,28 +10,48 @@ using Android.Views;
 
 namespace Graph
 {
-	public class GraphView : View
+	public class Line
+	{
+		public float XStart { get; set; }
+		public float XStop { get; set; }
+		public float YStart { get; set; }
+		public float YStop { get; set; }
+	}
+
+	public class Padding
+	{
+		public float Left { get; set; }
+		public float Right { get; set; }
+		public float Top { get; set; }
+		public float Bottom { get; set; }
+	}
+
+	public class DataItem
+	{
+		public string X { get; set; }
+		public double Y { get; set; }
+	}
+
+	public class LineChart : View
 	{
 		Paint textPaint;
-		Paint linePaint;
-		Paint boxPaint1;
-		float scaleFactor;
-		Paint boxPaint2;
-		double cost = 10;
-		double earnings = 15;
+		Paint axesPaint;
+		Paint bandsPaint;
+		IEnumerable<DataItem> data;
+		Padding padding;
 
 
-		public GraphView(Context context) : base(context)
+		public LineChart(Context context) : base(context)
 		{
 			Initialise();
 		}
 
-		public GraphView(Context context, IAttributeSet attrs) : base(context, attrs)
+		public LineChart(Context context, IAttributeSet attrs) : base(context, attrs)
 		{
 			Initialise();
 		}
 
-		public GraphView(Context context, IAttributeSet attrs, int defStyleAttr) : base(context, attrs, defStyleAttr)
+		public LineChart(Context context, IAttributeSet attrs, int defStyleAttr) : base(context, attrs, defStyleAttr)
 		{
 			Initialise();
 		}
@@ -39,81 +59,119 @@ namespace Graph
 		protected override void OnDraw(Canvas canvas)
 		{
 			base.OnDraw(canvas);
-			var padding = (int)(10 * scaleFactor);
-			int maxBarHeight = Height - 5 * padding;
-			float middle = (float)(Width * 0.5);
-			float bar1height;
-			float bar2height;
-			float quarter = (float)(Width * 0.25);
-			float threequarter = (float)(Width * 0.75);
 
+			LineChart.DrawChart(padding,
+						   canvas,
+						   axesPaint,
+						   bandsPaint,
+						   textPaint,
+						   Resources.DisplayMetrics.Density,
+						   this.Width,
+						   this.Height,
+						   data);
+		
+			textPaint.Dispose();
+			axesPaint.Dispose();
+			bandsPaint.Dispose();
+		}
 
-			if (earnings > cost)
+		static void DrawChart(
+			Padding padding, 
+			Canvas canvas, 
+			Paint axesPaint, 
+			Paint bandsPaint, 
+			Paint textPaint, 
+			float density, 
+			int viewWidth, 
+			int viewHeight, 
+			IEnumerable<DataItem> items)
+		{
+			var horizontal = new Line
 			{
-				bar2height = (float)maxBarHeight;
-				bar1height = (float)(cost / earnings * maxBarHeight);
+				XStart = padding.Left,
+				XStop = viewWidth - padding.Right,
+				YStart = viewHeight - padding.Bottom,
+				YStop = viewHeight - padding.Bottom
+			};
+
+			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
+
+			var vertical = new Line
+			{
+				XStart = padding.Left,
+				XStop = padding.Left,
+				YStart = padding.Top,
+				YStop = viewHeight - padding.Bottom
+			};
+
+			canvas.DrawLine(vertical.XStart, vertical.YStart, vertical.XStop, vertical.YStop, axesPaint);
+
+			// Make X axes labels
+			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Select(i => i.X).Count();
+			Func<int, float> getLabelPlacement = (int i) => sectionWidth * (i + 1 / 2) + horizontal.XStart;
+
+
+			foreach (Tuple<string, int> l in items.Select(i => i.X).Select((string l, int index) => new Tuple<string, int>(l, index)))
+			{
+				// Middle of the section minus half of the label text
+				var placement = getLabelPlacement(l.Item2) - (textPaint.MeasureText(l.Item1) / 2f);
+				textPaint.TextAlign = Paint.Align.Left;
+
+				canvas.DrawText(l.Item1, placement + padding.Left, horizontal.YStart + textPaint.TextSize, textPaint);
 			}
-			else {
-				bar1height = (float)maxBarHeight;
-				bar2height = (float)(earnings / cost * maxBarHeight);
+
+
+			// Make Y axes labels
+			var numberOfSections = (int)Math.Ceiling(items.Max(i => i.Y) / 50);
+			sectionWidth = (vertical.YStop - vertical.YStart) / numberOfSections;
+			Func<int, float> getValuePlacement = (int i) => vertical.YStop - (sectionWidth * i);
+
+			foreach (Tuple<string, int> v in Enumerable.Range(0, numberOfSections + 1).Select(i => new Tuple<string, int>((i * 50).ToString(), i)))
+			{
+				var placement = getValuePlacement(v.Item2);
+				textPaint.TextAlign = Paint.Align.Right;
+
+				canvas.DrawText(v.Item1, padding.Left - density * 5, placement - textPaint.Ascent() / 2, textPaint);
+
+
+				if (v.Item2 % 2 > 0 && v.Item2 < numberOfSections)
+					canvas.DrawRect(padding.Left + (axesPaint.StrokeWidth / 2), placement, viewWidth - padding.Right, placement - sectionWidth, bandsPaint);
 			}
-
-			float bar1bottom = Height - padding * 3;
-			float bar1top = bar1bottom - bar1height;
-			canvas.DrawRect(padding * 2, bar1top, middle - padding, bar1bottom, boxPaint1);
-			canvas.DrawText("Cost", quarter - padding, Height - padding, textPaint);
-			canvas.DrawText("$" + cost / 1000 + "K", quarter - padding, bar1top - padding, textPaint);
-
-			float bar2bottom = Height - padding * 3;
-			float bar2top = bar2bottom - bar2height;
-			canvas.DrawRect(middle + padding, bar2top, Width - (padding * 2), bar2bottom, boxPaint2);
-			canvas.DrawText("Earnings", threequarter - padding, Height - padding, textPaint);
-			canvas.DrawText("$" + earnings / 1000 + "K", threequarter - padding, bar2top - padding, textPaint);
-
-			var x = padding;
-			var y = (float)(Height - 2.5 * padding);
-			var stopx = Width - padding;
-			var stopy = (float)(Height - 2.5 * padding);
-			canvas.DrawLine(x, y, stopx, stopy, linePaint);
 		}
 
 		void Initialise()
 		{
-			scaleFactor = Resources.DisplayMetrics.Density;
-			
+			padding = new Padding
+			{
+				Left = 40 * Resources.DisplayMetrics.Density,
+				Right = 20 * Resources.DisplayMetrics.Density,
+				Bottom = 30 * Resources.DisplayMetrics.Density,
+				Top = 20 * Resources.DisplayMetrics.Density
+			};
+
 			textPaint = new Paint
 			{
 				Color = Color.Gray,
-				TextSize = 14 * scaleFactor
+				TextSize = 14 * Resources.DisplayMetrics.Density
 			};
-			linePaint =
-				new Paint
-				{
-					StrokeWidth = 1,
-					Color = Color.Gray
-				};
-			boxPaint1 =
-				new Paint
-				{
-					Color = Color.Blue
-				};
-			boxPaint2 =
-				new Paint
-				{
-					Color = Color.Yellow
-				};
-		}
 
-		public void SetCost(double value)
-		{
-			cost = value;
-			this.Invalidate();
-		}
+			axesPaint = new Paint
+			{
+				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
+				Color = Color.Gray
+			};
 
-		public void SetEarnings(double value)
-		{
-			earnings = value;
-			this.Invalidate();
+			bandsPaint = new Paint
+			{
+				Color = Color.LightGray
+			};
+
+			data = new List<DataItem> {
+				new DataItem { X = "JAN", Y = 266.7 },
+				new DataItem { X = "FEB", Y = 250.4 },
+				new DataItem { X = "MAR", Y = 330 },
+				new DataItem { X = "JUN", Y = 126 }
+			};
 		}
 	}
 }
