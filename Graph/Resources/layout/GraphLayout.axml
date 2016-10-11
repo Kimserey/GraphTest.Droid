@@ -6,5 +6,5 @@
     <Graph.LineChart
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="@color/material_grey_50" />
+        android:background="@color/white" />
 </LinearLayout>

@@ -37,6 +37,8 @@ namespace Graph
 		Paint textPaint;
 		Paint axesPaint;
 		Paint bandsPaint;
+		Paint linePaint;
+		Paint markersPaint;
 		IEnumerable<DataItem> data;
 		Padding padding;
 
@@ -61,7 +63,9 @@ namespace Graph
 			base.OnDraw(canvas);
 
 			LineChart.DrawChart(padding,
-						   canvas,
+					       canvas,
+	                   	   linePaint,
+	                       markersPaint,
 						   axesPaint,
 						   bandsPaint,
 						   textPaint,
@@ -69,21 +73,25 @@ namespace Graph
 						   this.Width,
 						   this.Height,
 						   data);
-		
+
 			textPaint.Dispose();
 			axesPaint.Dispose();
 			bandsPaint.Dispose();
+			linePaint.Dispose();
+			markersPaint.Dispose();
 		}
 
 		static void DrawChart(
-			Padding padding, 
-			Canvas canvas, 
-			Paint axesPaint, 
-			Paint bandsPaint, 
-			Paint textPaint, 
-			float density, 
-			int viewWidth, 
-			int viewHeight, 
+			Padding padding,
+			Canvas canvas,
+			Paint linePaint,
+			Paint marketsPaint,
+			Paint axesPaint,
+			Paint bandsPaint,
+			Paint textPaint,
+			float density,
+			int viewWidth,
+			int viewHeight,
 			IEnumerable<DataItem> items)
 		{
 			var horizontal = new Line
@@ -105,7 +113,7 @@ namespace Graph
 
 			DrawXLabels(canvas, textPaint, horizontal, items.Select(i => i.X));
 			DrawYLabels(canvas, density, bandsPaint, textPaint, horizontal, vertical, items.Select(i => i.Y));
-			DrawMarkers(canvas, density, axesPaint, horizontal, vertical, items);
+			DrawPlot(canvas, density, linePaint, marketsPaint, horizontal, vertical, items);
 
 			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
 			canvas.DrawLine(vertical.XStart, vertical.YStart, vertical.XStop, vertical.YStop, axesPaint);
@@ -113,19 +121,19 @@ namespace Graph
 		}
 
 		static void DrawXLabels(Canvas canvas, Paint textPaint, Line horizontal, IEnumerable<string> labels)
-		{ 
+		{
 			textPaint.TextAlign = Paint.Align.Left;
 
 			var sectionWidth = (horizontal.XStop - horizontal.XStart) / labels.Count();
 
 			foreach (Tuple<string, int> l in labels.Select((string l, int index) => Tuple.Create(l, index)))
 			{
-				var x  = sectionWidth * (l.Item2 + 1f / 2f) + horizontal.XStart;
+				var x = sectionWidth * (l.Item2 + 1f / 2f) + horizontal.XStart;
 				var halfedTextSize = textPaint.MeasureText(l.Item1) / 2f;
-				                      
+
 				canvas.DrawText(
-					text: l.Item1, 
-					x: x - halfedTextSize, 
+					text: l.Item1,
+					x: x - halfedTextSize,
 					y: horizontal.YStart + textPaint.TextSize,
 					paint: textPaint);
 			}
@@ -134,7 +142,7 @@ namespace Graph
 		static void DrawYLabels(Canvas canvas, float density, Paint bandsPaint, Paint textPaint, Line horizontal, Line vertical, IEnumerable<double> values)
 		{
 			textPaint.TextAlign = Paint.Align.Right;
-			
+
 			var numberOfSections = (int)Math.Ceiling(values.Max() / 50);
 			var sectionWidth = (vertical.YStop - vertical.YStart) / numberOfSections;
 
@@ -143,9 +151,9 @@ namespace Graph
 				var y = vertical.YStop - sectionWidth * v.Item2;
 
 				canvas.DrawText(
-					text: v.Item1.ToString(), 
-					x: vertical.XStart - 2 * density, 
-					y: y - (textPaint.Ascent() / 2f), 
+					text: v.Item1.ToString(),
+					x: vertical.XStart - 2 * density,
+					y: y - (textPaint.Ascent() / 2f),
 					paint: textPaint);
 
 				if (v.Item2 % 2 > 0 && v.Item2 < numberOfSections)
@@ -158,10 +166,11 @@ namespace Graph
 			}
 		}
 
-		static void DrawMarkers(Canvas canvas, float density, Paint markersPaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
-		{ 
+		static void DrawPlot(Canvas canvas, float density, Paint linePaint, Paint markersPaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
+		{
 			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Count();
 			var ceiling = (int)Math.Ceiling(items.Max(i => i.Y) / 50f) * 50f;
+			var points = new List<Tuple<float, float>>();
 
 			foreach (var l in items.Select((l, index) => Tuple.Create(l.X, l.Y, index)))
 			{
@@ -169,10 +178,22 @@ namespace Graph
 				var y = (float)l.Item2 * (vertical.YStop - vertical.YStart) / ceiling;
 
 				canvas.DrawCircle(
-					cx: x, 
+					cx: x,
 					cy: vertical.YStop - y,
 					radius: 5 * density,
 					paint: markersPaint);
+
+				points.Add(Tuple.Create(x, vertical.YStop - y));
+			}
+
+			for (int i = 1; i < points.Count; i++)
+			{
+				canvas.DrawLine(
+					points[i - 1].Item1,
+					points[i - 1].Item2,
+					points[i].Item1,
+					points[i].Item2,
+					linePaint);
 			}
 		}
 
@@ -188,26 +209,41 @@ namespace Graph
 
 			textPaint = new Paint
 			{
-				Color = Color.Gray,
-				TextSize = 14 * Resources.DisplayMetrics.Density
+				TextSize = 14 * Resources.DisplayMetrics.Density,
+				Color = Color.ParseColor("#424242")
 			};
 
+			linePaint = new Paint
+			{
+				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
+				Color = Color.Blue
+			};
+
+			markersPaint = new Paint
+			{
+				StrokeWidth = 3 * Resources.DisplayMetrics.Density,
+				Color = Color.Blue
+			};
+				
 			axesPaint = new Paint
 			{
 				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
-				Color = Color.Gray
+				Color = Color.ParseColor("#424242")
 			};
 
 			bandsPaint = new Paint
 			{
-				Color = Color.LightGray
+				Color = Color.ParseColor("#EEEEEE")
 			};
 
 			data = new List<DataItem> {
 				new DataItem { X = "JAN", Y = 266.7 },
 				new DataItem { X = "FEB", Y = 250.4 },
 				new DataItem { X = "MAR", Y = 330 },
-				new DataItem { X = "JUN", Y = 126 }
+				new DataItem { X = "JUN", Y = 126 },
+				new DataItem { X = "JUL", Y = 220 },
+				new DataItem { X = "AUG", Y = 230 },
+				new DataItem { X = "SEP", Y = 266 }
 			};
 		}
 	}
