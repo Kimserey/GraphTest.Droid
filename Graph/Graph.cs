@@ -94,7 +94,6 @@ namespace Graph
 				YStop = viewHeight - padding.Bottom
 			};
 
-			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
 
 			var vertical = new Line
 			{
@@ -104,38 +103,57 @@ namespace Graph
 				YStop = viewHeight - padding.Bottom
 			};
 
+			DrawXLabels(canvas, textPaint, horizontal, items.Select(i => i.X));
+			DrawYLabels(canvas, density, bandsPaint, textPaint, horizontal, vertical, items.Select(i => i.Y));
+
+			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
 			canvas.DrawLine(vertical.XStart, vertical.YStart, vertical.XStop, vertical.YStop, axesPaint);
 
-			// Make X axes labels
-			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Select(i => i.X).Count();
-			Func<int, float> getLabelPlacement = (int i) => sectionWidth * (i + 1 / 2) + horizontal.XStart;
+		}
 
+		static void DrawXLabels(Canvas canvas, Paint textPaint, Line horizontal, IEnumerable<string> labels)
+		{ 
+			textPaint.TextAlign = Paint.Align.Left;
 
-			foreach (Tuple<string, int> l in items.Select(i => i.X).Select((string l, int index) => new Tuple<string, int>(l, index)))
+			var sectionWidth = (horizontal.XStop - horizontal.XStart) / labels.Count();
+
+			foreach (Tuple<string, int> l in labels.Select((string l, int index) => Tuple.Create(l, index)))
 			{
-				// Middle of the section minus half of the label text
-				var placement = getLabelPlacement(l.Item2) - (textPaint.MeasureText(l.Item1) / 2f);
-				textPaint.TextAlign = Paint.Align.Left;
-
-				canvas.DrawText(l.Item1, placement + padding.Left, horizontal.YStart + textPaint.TextSize, textPaint);
+				var middleSection  = sectionWidth * (l.Item2 + 1f / 2f) + horizontal.XStart;
+				var halfedTextSize = textPaint.MeasureText(l.Item1) / 2f;
+				                      
+				canvas.DrawText(
+					text: l.Item1, 
+					x: middleSection - halfedTextSize, 
+					y: horizontal.YStart + textPaint.TextSize,
+					paint: textPaint);
 			}
+		}
 
+		static void DrawYLabels(Canvas canvas, float density, Paint bandsPaint, Paint textPaint, Line horizontal, Line vertical, IEnumerable<double> values)
+		{
+			textPaint.TextAlign = Paint.Align.Right;
+			
+			var numberOfSections = (int)Math.Ceiling(values.Max() / 50);
+			var sectionWidth = (vertical.YStop - vertical.YStart) / numberOfSections;
 
-			// Make Y axes labels
-			var numberOfSections = (int)Math.Ceiling(items.Max(i => i.Y) / 50);
-			sectionWidth = (vertical.YStop - vertical.YStart) / numberOfSections;
-			Func<int, float> getValuePlacement = (int i) => vertical.YStop - (sectionWidth * i);
-
-			foreach (Tuple<string, int> v in Enumerable.Range(0, numberOfSections + 1).Select(i => new Tuple<string, int>((i * 50).ToString(), i)))
+			foreach (var v in Enumerable.Range(0, numberOfSections).Select(i => Tuple.Create(i * 50, i)))
 			{
-				var placement = getValuePlacement(v.Item2);
-				textPaint.TextAlign = Paint.Align.Right;
+				var placement = vertical.YStop - sectionWidth * v.Item2;
 
-				canvas.DrawText(v.Item1, padding.Left - density * 5, placement - textPaint.Ascent() / 2, textPaint);
-
+				canvas.DrawText(
+					text: v.Item1.ToString(), 
+					x: vertical.XStart - 2 * density, 
+					y: placement - (textPaint.Ascent() / 2f), 
+					paint: textPaint);
 
 				if (v.Item2 % 2 > 0 && v.Item2 < numberOfSections)
-					canvas.DrawRect(padding.Left + (axesPaint.StrokeWidth / 2), placement, viewWidth - padding.Right, placement - sectionWidth, bandsPaint);
+					canvas.DrawRect(
+						left: horizontal.XStart,
+						top: placement - sectionWidth,
+						right: horizontal.XStop,
+						bottom: placement,
+						paint: bandsPaint);
 			}
 		}
 
