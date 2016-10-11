@@ -105,6 +105,7 @@ namespace Graph
 
 			DrawXLabels(canvas, textPaint, horizontal, items.Select(i => i.X));
 			DrawYLabels(canvas, density, bandsPaint, textPaint, horizontal, vertical, items.Select(i => i.Y));
+			DrawMarkers(canvas, density, axesPaint, horizontal, vertical, items);
 
 			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
 			canvas.DrawLine(vertical.XStart, vertical.YStart, vertical.XStop, vertical.YStop, axesPaint);
@@ -119,12 +120,12 @@ namespace Graph
 
 			foreach (Tuple<string, int> l in labels.Select((string l, int index) => Tuple.Create(l, index)))
 			{
-				var middleSection  = sectionWidth * (l.Item2 + 1f / 2f) + horizontal.XStart;
+				var x  = sectionWidth * (l.Item2 + 1f / 2f) + horizontal.XStart;
 				var halfedTextSize = textPaint.MeasureText(l.Item1) / 2f;
 				                      
 				canvas.DrawText(
 					text: l.Item1, 
-					x: middleSection - halfedTextSize, 
+					x: x - halfedTextSize, 
 					y: horizontal.YStart + textPaint.TextSize,
 					paint: textPaint);
 			}
@@ -139,21 +140,39 @@ namespace Graph
 
 			foreach (var v in Enumerable.Range(0, numberOfSections).Select(i => Tuple.Create(i * 50, i)))
 			{
-				var placement = vertical.YStop - sectionWidth * v.Item2;
+				var y = vertical.YStop - sectionWidth * v.Item2;
 
 				canvas.DrawText(
 					text: v.Item1.ToString(), 
 					x: vertical.XStart - 2 * density, 
-					y: placement - (textPaint.Ascent() / 2f), 
+					y: y - (textPaint.Ascent() / 2f), 
 					paint: textPaint);
 
 				if (v.Item2 % 2 > 0 && v.Item2 < numberOfSections)
 					canvas.DrawRect(
 						left: horizontal.XStart,
-						top: placement - sectionWidth,
+						top: y - sectionWidth,
 						right: horizontal.XStop,
-						bottom: placement,
+						bottom: y,
 						paint: bandsPaint);
+			}
+		}
+
+		static void DrawMarkers(Canvas canvas, float density, Paint markersPaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
+		{ 
+			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Count();
+			var ceiling = (int)Math.Ceiling(items.Max(i => i.Y) / 50f) * 50f;
+
+			foreach (var l in items.Select((l, index) => Tuple.Create(l.X, l.Y, index)))
+			{
+				var x = sectionWidth * (l.Item3 + 1f / 2f) + horizontal.XStart;
+				var y = (float)l.Item2 * (vertical.YStop - vertical.YStart) / ceiling;
+
+				canvas.DrawCircle(
+					cx: x, 
+					cy: vertical.YStop - y,
+					radius: 5 * density,
+					paint: markersPaint);
 			}
 		}
 
