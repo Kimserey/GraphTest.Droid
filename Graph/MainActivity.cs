@@ -20,15 +20,5 @@ namespace Graph
 			this.LoadApplication(new App());
 		}
 	}
-
-	public class GraphAtivity : Activity
-	{
-		protected override void OnCreate(Bundle savedInstanceState)
-		{
-			base.OnCreate(savedInstanceState);
-
-			SetContentView(Resource.Layout.GraphLayout);
-		}
-	}
 }
 

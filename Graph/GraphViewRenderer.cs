@@ -1,38 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-
-using Android.Content;
+using Xamarin.Forms;
+using Core;
+using Renderer.Droid;
+using Xamarin.Forms.Platform.Android;
 using Android.Graphics;
-using Android.Text;
-using Android.Util;
-using Android.Views;
+using System.Collections.Generic;
+using Color = Android.Graphics.Color;
 
-namespace Graph
+[assembly: ExportRenderer (typeof(GraphView), typeof(GraphViewRenderer))]
+namespace Renderer.Droid
 {
-	public class Line
-	{
-		public float XStart { get; set; }
-		public float XStop { get; set; }
-		public float YStart { get; set; }
-		public float YStop { get; set; }
-	}
-
-	public class Padding
-	{
-		public float Left { get; set; }
-		public float Right { get; set; }
-		public float Top { get; set; }
-		public float Bottom { get; set; }
-	}
-
-	public class DataItem
-	{
-		public string X { get; set; }
-		public double Y { get; set; }
-	}
-
-	public class LineChart : View
+	public class GraphViewRenderer : ViewRenderer<GraphView, GraphViewRenderer>
 	{
 		Paint textPaint;
 		Paint axesPaint;
@@ -42,30 +21,36 @@ namespace Graph
 		IEnumerable<DataItem> data;
 		Padding padding;
 
-
-		public LineChart(Context context) : base(context)
+		public GraphViewRenderer()
 		{
-			Initialise();
+			this.SetWillNotDraw(false);
 		}
 
-		public LineChart(Context context, IAttributeSet attrs) : base(context, attrs)
+		protected override void OnElementChanged(ElementChangedEventArgs<GraphView> e)
 		{
-			Initialise();
-		}
+			base.OnElementChanged(e);
 
-		public LineChart(Context context, IAttributeSet attrs, int defStyleAttr) : base(context, attrs, defStyleAttr)
-		{
 			Initialise();
+			if (Control == null)
+			{
+			}
+
+			if (e.OldElement != null)
+			{
+			}
+			if (e.NewElement != null)
+			{
+			}
 		}
 
 		protected override void OnDraw(Canvas canvas)
 		{
 			base.OnDraw(canvas);
 
-			LineChart.DrawChart(padding,
-					       canvas,
-	                   	   linePaint,
-	                       markersPaint,
+			GraphViewRenderer.DrawChart(padding,
+						   canvas,
+						   linePaint,
+						   markersPaint,
 						   axesPaint,
 						   bandsPaint,
 						   textPaint,
@@ -73,12 +58,6 @@ namespace Graph
 						   this.Width,
 						   this.Height,
 						   data);
-
-			textPaint.Dispose();
-			axesPaint.Dispose();
-			bandsPaint.Dispose();
-			linePaint.Dispose();
-			markersPaint.Dispose();
 		}
 
 		static void DrawChart(
@@ -143,10 +122,10 @@ namespace Graph
 		{
 			textPaint.TextAlign = Paint.Align.Right;
 
-			var numberOfSections = (int)Math.Ceiling(values.Max() / 50);
+			var numberOfSections = (int)Math.Ceiling(values.Max() / 100);
 			var sectionWidth = (vertical.YStop - vertical.YStart) / numberOfSections;
 
-			foreach (var v in Enumerable.Range(0, numberOfSections).Select(i => Tuple.Create(i * 50, i)))
+			foreach (var v in Enumerable.Range(0, numberOfSections).Select(i => Tuple.Create(i * 100, i)))
 			{
 				var y = vertical.YStop - sectionWidth * v.Item2;
 
@@ -169,7 +148,7 @@ namespace Graph
 		static void DrawPlot(Canvas canvas, float density, Paint linePaint, Paint markersPaint, Paint valuePaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
 		{
 			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Count();
-			var ceiling = (int)Math.Ceiling(items.Max(i => i.Y) / 50f) * 50f;
+			var ceiling = (int)Math.Ceiling(items.Max(i => i.Y) / 100f) * 100f;
 			var points = new List<Tuple<float, float, double>>();
 
 			foreach (var l in items.Select((l, index) => Tuple.Create(l.X, l.Y, index)))
@@ -189,13 +168,13 @@ namespace Graph
 						points[i + 1].Item1,
 						points[i + 1].Item2,
 						linePaint);
-				
+
 				canvas.DrawCircle(
 					cx: points[i].Item1,
 					cy: points[i].Item2,
 					radius: 5 * density,
 					paint: markersPaint);
-				
+
 				canvas.DrawText(
 					text: points[i].Item3.ToString(),
 					x: points[i].Item1,
@@ -217,13 +196,13 @@ namespace Graph
 			textPaint = new Paint
 			{
 				TextSize = 14 * Resources.DisplayMetrics.Density,
-				Color = Color.ParseColor("#212121")
+				Color = Color.ParseColor("#37474F")
 			};
 
 			axesPaint = new Paint
 			{
 				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
-				Color = Color.ParseColor("#212121")
+				Color = Color.ParseColor("#37474F")
 			};
 
 			linePaint = new Paint
@@ -240,7 +219,7 @@ namespace Graph
 
 			bandsPaint = new Paint
 			{
-				Color = Color.ParseColor("#BDBDBD")
+				Color = Color.ParseColor("#EEEEEE")
 			};
 
 			data = new List<DataItem> {
@@ -253,5 +232,5 @@ namespace Graph
 				new DataItem { X = "SEP", Y = 266 }
 			};
 		}
-	}
+    }
 }
