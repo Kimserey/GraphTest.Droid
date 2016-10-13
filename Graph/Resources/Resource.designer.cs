@@ -1091,32 +1091,32 @@ namespace Graph
 		public partial class Color
 		{
 			
-			// aapt resource value: 0x7f0b0051
-			public const int abc_background_cache_hint_selector_material_dark = 2131427409;
-			
 			// aapt resource value: 0x7f0b0052
-			public const int abc_background_cache_hint_selector_material_light = 2131427410;
+			public const int abc_background_cache_hint_selector_material_dark = 2131427410;
 			
 			// aapt resource value: 0x7f0b0053
-			public const int abc_color_highlight_material = 2131427411;
+			public const int abc_background_cache_hint_selector_material_light = 2131427411;
+			
+			// aapt resource value: 0x7f0b0054
+			public const int abc_color_highlight_material = 2131427412;
 			
 			// aapt resource value: 0x7f0b000a
 			public const int abc_input_method_navigation_guard = 2131427338;
 			
-			// aapt resource value: 0x7f0b0054
-			public const int abc_primary_text_disable_only_material_dark = 2131427412;
-			
 			// aapt resource value: 0x7f0b0055
-			public const int abc_primary_text_disable_only_material_light = 2131427413;
+			public const int abc_primary_text_disable_only_material_dark = 2131427413;
 			
 			// aapt resource value: 0x7f0b0056
-			public const int abc_primary_text_material_dark = 2131427414;
+			public const int abc_primary_text_disable_only_material_light = 2131427414;
 			
 			// aapt resource value: 0x7f0b0057
-			public const int abc_primary_text_material_light = 2131427415;
+			public const int abc_primary_text_material_dark = 2131427415;
 			
 			// aapt resource value: 0x7f0b0058
-			public const int abc_search_url_text = 2131427416;
+			public const int abc_primary_text_material_light = 2131427416;
+			
+			// aapt resource value: 0x7f0b0059
+			public const int abc_search_url_text = 2131427417;
 			
 			// aapt resource value: 0x7f0b000b
 			public const int abc_search_url_text_normal = 2131427339;
@@ -1127,11 +1127,11 @@ namespace Graph
 			// aapt resource value: 0x7f0b000d
 			public const int abc_search_url_text_selected = 2131427341;
 			
-			// aapt resource value: 0x7f0b0059
-			public const int abc_secondary_text_material_dark = 2131427417;
-			
 			// aapt resource value: 0x7f0b005a
-			public const int abc_secondary_text_material_light = 2131427418;
+			public const int abc_secondary_text_material_dark = 2131427418;
+			
+			// aapt resource value: 0x7f0b005b
+			public const int abc_secondary_text_material_light = 2131427419;
 			
 			// aapt resource value: 0x7f0b004c
 			public const int accent = 2131427404;
@@ -1296,7 +1296,7 @@ namespace Graph
 			public const int primary = 2131427401;
 			
 			// aapt resource value: 0x7f0b004a
-			public const int primary_dark = 2131427402;
+			public const int primaryDark = 2131427402;
 			
 			// aapt resource value: 0x7f0b0032
 			public const int primary_dark_material_dark = 2131427378;
@@ -1355,11 +1355,11 @@ namespace Graph
 			// aapt resource value: 0x7f0b0041
 			public const int switch_thumb_disabled_material_light = 2131427393;
 			
-			// aapt resource value: 0x7f0b005b
-			public const int switch_thumb_material_dark = 2131427419;
-			
 			// aapt resource value: 0x7f0b005c
-			public const int switch_thumb_material_light = 2131427420;
+			public const int switch_thumb_material_dark = 2131427420;
+			
+			// aapt resource value: 0x7f0b005d
+			public const int switch_thumb_material_light = 2131427421;
 			
 			// aapt resource value: 0x7f0b0042
 			public const int switch_thumb_normal_material_dark = 2131427394;
@@ -1369,6 +1369,9 @@ namespace Graph
 			
 			// aapt resource value: 0x7f0b0048
 			public const int white = 2131427400;
+			
+			// aapt resource value: 0x7f0b0051
+			public const int window_background = 2131427409;
 			
 			static Color()
 			{
@@ -3574,6 +3577,12 @@ namespace Graph
 			
 			// aapt resource value: 0x7f0a0171
 			public const int CardView_Light = 2131362161;
+			
+			// aapt resource value: 0x7f0a0172
+			public const int MyTheme = 2131362162;
+			
+			// aapt resource value: 0x7f0a0173
+			public const int MyTheme_Base = 2131362163;
 			
 			// aapt resource value: 0x7f0a0047
 			public const int Platform_AppCompat = 2131361863;

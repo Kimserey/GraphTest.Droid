@@ -7,7 +7,7 @@ using Xamarin.Forms.Platform.Android;
 
 namespace Graph
 {
-	[Activity(Label = "Graph", MainLauncher = true, Icon = "@mipmap/icon")]
+	[Activity(Label = "Graph", Theme = "@style/MyTheme", MainLauncher = true, Icon = "@mipmap/icon")]
 	public class MainActivity : FormsAppCompatActivity
 	{
 		protected override void OnCreate(Bundle savedInstanceState)

@@ -106,6 +106,7 @@
     <AndroidResource Include="Resources\values\colors.xml" />
     <AndroidResource Include="Resources\layout\tabs.axml" />
     <AndroidResource Include="Resources\layout\toolbar.axml" />
+    <AndroidResource Include="Resources\values\style.xml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Resources\drawable\" />
