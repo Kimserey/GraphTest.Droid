@@ -113,7 +113,7 @@ namespace Graph
 
 			DrawXLabels(canvas, textPaint, horizontal, items.Select(i => i.X));
 			DrawYLabels(canvas, density, bandsPaint, textPaint, horizontal, vertical, items.Select(i => i.Y));
-			DrawPlot(canvas, density, linePaint, marketsPaint, horizontal, vertical, items);
+			DrawPlot(canvas, density, linePaint, marketsPaint, textPaint, horizontal, vertical, items);
 
 			canvas.DrawLine(horizontal.XStart, horizontal.YStart, horizontal.XStop, horizontal.YStop, axesPaint);
 			canvas.DrawLine(vertical.XStart, vertical.YStart, vertical.XStop, vertical.YStop, axesPaint);
@@ -166,34 +166,41 @@ namespace Graph
 			}
 		}
 
-		static void DrawPlot(Canvas canvas, float density, Paint linePaint, Paint markersPaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
+		static void DrawPlot(Canvas canvas, float density, Paint linePaint, Paint markersPaint, Paint valuePaint, Line horizontal, Line vertical, IEnumerable<DataItem> items)
 		{
 			var sectionWidth = (horizontal.XStop - horizontal.XStart) / items.Count();
 			var ceiling = (int)Math.Ceiling(items.Max(i => i.Y) / 50f) * 50f;
-			var points = new List<Tuple<float, float>>();
+			var points = new List<Tuple<float, float, double>>();
 
 			foreach (var l in items.Select((l, index) => Tuple.Create(l.X, l.Y, index)))
 			{
 				var x = sectionWidth * (l.Item3 + 1f / 2f) + horizontal.XStart;
 				var y = (float)l.Item2 * (vertical.YStop - vertical.YStart) / ceiling;
 
-				canvas.DrawCircle(
-					cx: x,
-					cy: vertical.YStop - y,
-					radius: 5 * density,
-					paint: markersPaint);
-
-				points.Add(Tuple.Create(x, vertical.YStop - y));
+				points.Add(Tuple.Create(x, vertical.YStop - y, l.Item2));
 			}
 
-			for (int i = 1; i < points.Count; i++)
+			for (int i = 0; i < points.Count; i++)
 			{
-				canvas.DrawLine(
-					points[i - 1].Item1,
-					points[i - 1].Item2,
-					points[i].Item1,
-					points[i].Item2,
-					linePaint);
+				if (i < points.Count - 1)
+					canvas.DrawLine(
+						points[i].Item1,
+						points[i].Item2,
+						points[i + 1].Item1,
+						points[i + 1].Item2,
+						linePaint);
+				
+				canvas.DrawCircle(
+					cx: points[i].Item1,
+					cy: points[i].Item2,
+					radius: 5 * density,
+					paint: markersPaint);
+				
+				canvas.DrawText(
+					text: points[i].Item3.ToString(),
+					x: points[i].Item1,
+					y: points[i].Item2,
+					paint: valuePaint);
 			}
 		}
 
@@ -210,30 +217,30 @@ namespace Graph
 			textPaint = new Paint
 			{
 				TextSize = 14 * Resources.DisplayMetrics.Density,
-				Color = Color.ParseColor("#424242")
+				Color = Color.ParseColor("#212121")
+			};
+
+			axesPaint = new Paint
+			{
+				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
+				Color = Color.ParseColor("#212121")
 			};
 
 			linePaint = new Paint
 			{
 				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
-				Color = Color.Blue
+				Color = Color.ParseColor("#FF5722")
 			};
 
 			markersPaint = new Paint
 			{
 				StrokeWidth = 3 * Resources.DisplayMetrics.Density,
-				Color = Color.Blue
-			};
-				
-			axesPaint = new Paint
-			{
-				StrokeWidth = 2 * Resources.DisplayMetrics.Density,
-				Color = Color.ParseColor("#424242")
+				Color = Color.ParseColor("#448AFF")
 			};
 
 			bandsPaint = new Paint
 			{
-				Color = Color.ParseColor("#EEEEEE")
+				Color = Color.ParseColor("#BDBDBD")
 			};
 
 			data = new List<DataItem> {
